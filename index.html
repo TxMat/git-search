@@ -124,17 +124,17 @@
                             console.log("Data received from backend:", data);
                             // Combine GitHub and GitLab users with avatars and sources
                             this.users = [
-                                ...data.github.map(user => ({
-                                    username: user.username,
-                                    url: user.url,
-                                    avatar_url: `https://avatars.githubusercontent.com/${user.username}`,
-                                    source: 'github'
-                                })),
                                 ...data.gitlab.map(user => ({
                                     username: user.username,
                                     url: user.url,
-                                    avatar_url: `https://gitlab.com/uploads/-/system/user/avatar/${user.username}.png`,
+                                    avatar_url: user.avatar,
                                     source: 'gitlab'
+                                })),
+                                ...data.github.map(user => ({
+                                    username: user.username,
+                                    url: user.url,
+                                    avatar_url: user.avatar,
+                                    source: 'github'
                                 }))
                             ];
                         })
