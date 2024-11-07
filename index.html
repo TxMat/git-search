@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Search</title>
+    
+    <!-- Alpine.js for interactivity -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- TailwindCSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* Frosted Glass Effect for Cards */
+        .glass {
+            backdrop-filter: blur(10px) saturate(180%);
+            background-color: rgba(255, 255, 255, 0.25);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transform-style: preserve-3d;
+            transition: transform 0.2s ease-out;
+        }
+
+        /* Mouse Aura */
+        .hover-aura {
+            position: relative;
+            cursor: pointer;
+            transition: box-shadow 0.3s ease-out;
+        }
+
+        .hover-aura:hover::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 150%;
+            height: 150%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.2), transparent);
+            transform: translate(-50%, -50%);
+        }
+
+        .hover-aura:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Prevent text selection while dragging */
+        body, .hover-aura {
+            user-select: none;
+        }
+
+        /* Make the card's anchor tag cover the whole card */
+        .card-link {
+            position: relative;
+            display: block;
+            width: 100%;
+            height: 100%;
+            text-decoration: none; /* Remove the underline */
+            color: inherit; /* Inherit text color */
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-r from-blue-500 to-green-500 min-h-screen flex flex-col items-center justify-center" x-data="userSearch()">
+    <div class="w-full max-w-xl mx-auto p-4">
+        <h1 class="text-white text-4xl font-bold mb-4 text-center">Search GitHub and GitLab Users</h1>
+
+        <!-- Search Box -->
+        <div class="flex mb-6">
+            <input type="text" id="search-query" class="w-full p-2 rounded-lg shadow-lg" placeholder="Search for users..." x-model="query">
+            <button @click="searchUsers" class="ml-2 p-2 bg-white text-blue-500 font-bold rounded-lg shadow-lg hover:bg-gray-200">Search</button>
+        </div>
+
+        <!-- User Cards -->
+        <div class="grid grid-cols-1 gap-4">
+            <template x-for="user in users" :key="user.url">
+                <a :href="user.url" target="_blank" class="card-link">
+                    <div class="glass hover-aura bg-white p-4 rounded-lg shadow-lg flex items-center space-x-4">
+                        
+                        <!-- Avatar -->
+                        <img :src="user.avatar_url" alt="Avatar" class="w-16 h-16 rounded-full border-2 border-gray-300 shadow-md">
+
+                        <!-- User Info -->
+                        <div>
+                            <p class="text-xl font-bold text-blue-500" x-text="user.username"></p>
+                            
+                            <!-- Source Logo -->
+                            <div class="mt-2">
+                                <img :src="user.source === 'github' ? 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png' : 'https://about.gitlab.com/images/press/logo/png/gitlab-icon-rgb.png'"
+                                    alt="Source logo"
+                                    class="w-6 h-6 inline-block">
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </template>
+        </div>
+    </div>
+
+    <script>
+        function userSearch() {
+            return {
+                query: '',
+                users: [],
+
+                // Function to search for users
+                searchUsers() {
+                    console.log("Searching for: ", this.query);
+
+                    // Check for empty query
+                    if (!this.query.trim()) {
+                        alert("Please enter a search term.");
+                        return;
+                    }
+
+                    // Send the fetch request to the backend
+                    fetch(`/search?query=${encodeURIComponent(this.query)}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log("Data received from backend:", data);
+                            // Combine GitHub and GitLab users with avatars and sources
+                            this.users = [
+                                ...data.github.map(user => ({
+                                    username: user.username,
+                                    url: user.url,
+                                    avatar_url: `https://avatars.githubusercontent.com/${user.username}`,
+                                    source: 'github'
+                                })),
+                                ...data.gitlab.map(user => ({
+                                    username: user.username,
+                                    url: user.url,
+                                    avatar_url: `https://gitlab.com/uploads/-/system/user/avatar/${user.username}.png`,
+                                    source: 'gitlab'
+                                }))
+                            ];
+                        })
+                        .catch(error => {
+                            console.error("There was a problem with the fetch operation:", error);
+                        });
+                },
+            }
+        }
+    </script>
+</body>
+</html>
+
