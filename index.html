@@ -66,7 +66,7 @@
 
         <!-- Search Box -->
         <div class="flex mb-6">
-            <input type="text" id="search-query" class="w-full p-2 rounded-lg shadow-lg" placeholder="Search for users..." x-model="query">
+            <input type="text" id="search-query" class="w-full p-2 rounded-lg shadow-lg" placeholder="Search for users..." x-model="query" @keydown.enter="searchUsers" >
             <button @click="searchUsers" class="ml-2 p-2 bg-white text-blue-500 font-bold rounded-lg shadow-lg hover:bg-gray-200">Search</button>
         </div>
 
